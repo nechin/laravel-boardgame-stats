@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\BGG\Contracts\BGG;
+use Exception;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +25,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        $this->app->bind(BGG::class, function () {
+            $class = config('services.bgg.provider');
+            if (empty($class)) {
+                throw new Exception('Wrong provider class name');
+            }
+
+            return new $class();
+        });
     }
 }
