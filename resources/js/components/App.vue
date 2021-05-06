@@ -16,6 +16,7 @@
                     v-on:click="getPlays"
                     class="btn btn-outline-secondary"
                     type="button"
+                    :disabled="loading"
                 >
                     Показать
                 </button>
@@ -28,20 +29,16 @@
             </div>
         </div>
 
-        <div v-if="userPlays.length > 0">
-            <table class="table">
+        <div v-if="userStats.headers.length > 0">
+            <table class="table table-striped table-bordered table-hover table-sm table-responsive">
                 <thead>
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Название</th>
-                    <th scope="col">Дата</th>
+                    <th scope="col" v-for="header in userStats.headers">{{ header }}</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="play in userPlays">
-                    <th scope="row">{{ play.id }}</th>
-                    <td>{{ play.name }}</td>
-                    <td>{{ play.date }}</td>
+                <tr v-for="(items) in userStats.items">
+                    <td v-for="item in items">{{ item }}</td>
                 </tr>
                 </tbody>
             </table>
@@ -57,7 +54,10 @@ export default {
         return {
             loading: false,
             userName: '',
-            userPlays: []
+            userStats: {
+                headers: [],
+                items: [],
+            }
         };
     },
 
@@ -67,12 +67,26 @@ export default {
 
     methods: {
         getPlays() {
+            if (this.loading) {
+                return;
+            }
+
+            if (!this.userName) {
+                alert('Введите имя пользователя');
+                return;
+            }
+
             this.loading = true;
+            this.userStats.headers = [];
+
             api.plays.get(this.userName)
                 .then((response) => {
-                    this.userPlays = response.data.plays;
+                    this.userStats = response.data.stats;
+                    if (this.userStats.headers.length === 0) {
+                        alert('Записей не найдено');
+                    }
                 })
-                .catch((error) => alert(error.error))
+                .catch((err) => alert(err.response.data.error))
                 .finally(() => this.loading = false);
         },
 

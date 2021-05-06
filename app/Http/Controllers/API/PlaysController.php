@@ -22,7 +22,7 @@ class PlaysController extends Controller
     {
         try {
             return response()->json([
-                'plays' => $bgg->getUserPlays($userName)
+                'stats' => $bgg->getUserPlaysStat($userName)
             ]);
         } catch (Exception $exception) {
             return response()->json([

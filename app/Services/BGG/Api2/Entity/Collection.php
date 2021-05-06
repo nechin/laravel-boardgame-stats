@@ -3,17 +3,17 @@
 namespace App\Services\BGG\Api2\Entity;
 
 /**
- * Class Play
+ * Class Collection
  * @package App\Services\BGG\Api2\Entity
  */
-class Play extends Element
+class Collection extends Element
 {
     /**
      * @return int
      */
     public function getId(): int
     {
-        return (int)$this->root['id'];
+        return (int)$this->root['collid'];
     }
 
     /**
@@ -21,7 +21,7 @@ class Play extends Element
      */
     public function getName(): string
     {
-        return (string)$this->root->item['name'];
+        return (string)$this->root->name;
     }
 
     /**
@@ -29,14 +29,6 @@ class Play extends Element
      */
     public function getGameId(): string
     {
-        return (string)$this->root->item['objectid'];
-    }
-
-    /**
-     * @return string
-     */
-    public function getDate(): string
-    {
-        return strval($this->root['date']);
+        return strval($this->root['objectid']);
     }
 }

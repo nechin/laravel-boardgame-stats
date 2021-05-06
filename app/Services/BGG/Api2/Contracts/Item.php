@@ -11,19 +11,20 @@ use SimpleXMLElement;
  */
 abstract class Item
 {
+    const TYPE_THING = 'thing';
+    const TYPE_FAMILY = 'family';
+
+    const THING_TYPE_BG = 'boardgame';
+    const THING_TYPE_BG_EXPANSION = 'boardgameexpansion';
+    const THING_TYPE_BG_ACCESSORY = 'boardgameaccessory';
+    const THING_TYPE_VIDEO_GAME = 'videogame';
+    const THING_TYPE_VIDEO_RPG_ITEM = 'rpgitem';
+    const THING_TYPE_VIDEO_RPG_ISSUE = 'rpgissue';
+
     /**
      * @var array
      */
     protected array $parameters;
-
-    /**
-     * Thing constructor.
-     * @param array $parameters
-     */
-    public function __construct(array $parameters)
-    {
-        $this->parameters = $parameters;
-    }
 
     /**
      * @return string
@@ -31,6 +32,14 @@ abstract class Item
     public function getApiUri(): string
     {
         return config('services.bgg.path') . $this->getUri();
+    }
+
+    /**
+     * @param array $parameters
+     */
+    public function setParameters(array $parameters): void
+    {
+        $this->parameters = $parameters;
     }
 
     /**
@@ -48,8 +57,13 @@ abstract class Item
     public function getResult(): SimpleXMLElement
     {
         $xml = simplexml_load_file($this->getApiUri());
+
         if (!$xml instanceof SimpleXMLElement) {
             throw new Exception('API call failed');
+        }
+
+        if ($xml->error) {
+            throw new Exception($xml->error->message);
         }
 
         return $xml;
