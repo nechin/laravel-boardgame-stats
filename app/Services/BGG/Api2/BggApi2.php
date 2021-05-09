@@ -11,6 +11,7 @@ use App\Services\BGG\Contracts\BaseBGG;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use SimpleXMLElement;
 
 /**
@@ -20,6 +21,10 @@ use SimpleXMLElement;
 class BggApi2 extends BaseBGG
 {
     private string $dateFormat = 'Y-m-d';
+    private Collection $plays;
+    private Collection $games;
+    private array $playsByMonth;
+    private int $cacheSeconds = 3600;
 
     /**
      * @param string $userName
@@ -28,6 +33,11 @@ class BggApi2 extends BaseBGG
      */
     public function getUserPlays(string $userName): Collection
     {
+        $cacheKey = 'bgg:plays:' . $userName;
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
         $parameters = [
             'username' => $userName,
             'type' => Item::TYPE_THING
@@ -36,6 +46,7 @@ class BggApi2 extends BaseBGG
         $element = new Plays();
         try {
             $page = 1;
+            $totalPages = round(config('services.bgg.plays_count') / 100);
             $plays = collect([]);
             do {
                 $parameters['page'] = $page;
@@ -53,7 +64,11 @@ class BggApi2 extends BaseBGG
                 }
 
                 $page++;
-            } while ($elements && $page < 15);
+            } while ($elements && $page < $totalPages);
+
+            if ($plays->count()) {
+                Cache::put($cacheKey, $plays, $this->cacheSeconds);
+            }
 
             return $plays;
         } catch (Exception $exception) {
@@ -68,6 +83,11 @@ class BggApi2 extends BaseBGG
      */
     public function getUserCollections(string $userName): Collection
     {
+        $cacheKey = 'bgg:collection:' . $userName;
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
         $parameters = [
             'username' => $userName,
             'own' => 1,
@@ -89,6 +109,10 @@ class BggApi2 extends BaseBGG
                 ]);
             }
 
+            if ($games->count()) {
+                Cache::put($cacheKey, $games, $this->cacheSeconds);
+            }
+
             return $games;
         } catch (Exception $exception) {
             throw new Exception($exception->getMessage());
@@ -108,16 +132,16 @@ class BggApi2 extends BaseBGG
                 'items' => [],
             ];
 
-            $plays = $this->getUserPlays($userName);
-            $games = $this->getUserCollections($userName);
+            $this->plays = $this->getUserPlays($userName);
+            $this->games = $this->getUserCollections($userName);
 
-            if (empty($plays) || empty($games)) {
+            if (empty($this->plays) || empty($this->games)) {
                 return collect($stats);
             }
 
-            $playsByMonth = $this->fillPlaysByMonth($plays);
-            $stats['headers'] = $this->fillHeaders($playsByMonth);
-            $stats['items'] = $this->fillItems($playsByMonth, $stats['headers'], $games);
+            $this->playsByMonth = $this->fillPlaysByMonth();
+            $stats['headers'] = $this->fillHeaders();
+            $stats['items'] = $this->fillItems($stats['headers']);
 
             return collect($stats);
         } catch (Exception $exception) {
@@ -126,20 +150,19 @@ class BggApi2 extends BaseBGG
     }
 
     /**
-     * @param Collection $plays
      * @return array
      */
-    private function fillPlaysByMonth(Collection $plays): array
+    private function fillPlaysByMonth(): array
     {
         $data = [];
 
-        foreach ($plays as $play) {
+        foreach ($this->plays as $play) {
             $date = Carbon::createFromFormat($this->dateFormat, $play['date']);
 
-            if (isset($data[$date->year][$date->month][$play['gameId']])) {
-                $data[$date->year][$date->month][$play['gameId']]++;
+            if (isset($data[$date->year][$date->format('m')][$play['gameId']])) {
+                $data[$date->year][$date->format('m')][$play['gameId']]++;
             } else {
-                $data[$date->year][$date->month][$play['gameId']] = 1;
+                $data[$date->year][$date->format('m')][$play['gameId']] = 1;
             }
         }
 
@@ -147,23 +170,22 @@ class BggApi2 extends BaseBGG
     }
 
     /**
-     * @param array $playsByMonth
      * @return Collection
      */
-    private function fillHeaders(array $playsByMonth): Collection
+    private function fillHeaders(): Collection
     {
-        if (empty($playsByMonth)) {
+        if (empty($this->playsByMonth)) {
             return collect([]);
         }
 
-        $data = collect(['Название']);
+        $data = collect(['']);
 
-        ksort($playsByMonth);
+        ksort($this->playsByMonth);
 
-        foreach ($playsByMonth as $year => $monthPlays) {
+        foreach ($this->playsByMonth as $year => $monthPlays) {
             ksort($monthPlays);
             foreach ($monthPlays as $month => $plays) {
-                $data->push($year . '-' . $month);
+                $data->push([$year, $month]);
             }
         }
 
@@ -171,26 +193,23 @@ class BggApi2 extends BaseBGG
     }
 
     /**
-     * @param array $playsByMonth
      * @param Collection $headers
-     * @param Collection $games
      * @return Collection
      */
-    private function fillItems(array $playsByMonth, Collection $headers, Collection $games): Collection
+    private function fillItems(Collection $headers): Collection
     {
         $data = collect([]);
 
-        if (empty($playsByMonth)) {
+        if (empty($this->playsByMonth)) {
             return $data;
         }
 
-        foreach ($games as $game) {
+        foreach ($this->games as $game) {
             $row = [$game['name']];
 
             foreach ($headers as $key => $header) {
                 if ($key) {
-                    $dates = explode('-', $header);
-                    $row[] = $playsByMonth[$dates[0]][$dates[1]][$game['id']] ?? '';
+                    $row[] = $this->playsByMonth[$header[0]][$header[1]][$game['id']] ?? '';
                 }
             }
 

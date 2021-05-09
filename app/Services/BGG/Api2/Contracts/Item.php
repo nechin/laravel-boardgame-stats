@@ -66,6 +66,10 @@ abstract class Item
             throw new Exception($xml->error->message);
         }
 
+        if (strpos($xml, 'Your request for this collection') !== false) {
+            throw new Exception('Ваш запрос принят и скоро будет обработан. Нажмите кнопку "Показать" ещё раз.');
+        }
+
         return $xml;
     }
 

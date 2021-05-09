@@ -35,6 +35,7 @@ return [
     'bgg' => [
         'provider' => BggApi2::class,
         'path' => 'https://www.boardgamegeek.com/xmlapi2/',
+        'plays_count' => 2000,
     ],
 
 ];

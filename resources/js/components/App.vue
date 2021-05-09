@@ -1,14 +1,14 @@
 <template>
     <div class="col-md-12">
-        <p class="font-italic">Статистика сыгранных партий для указанного пользователя по давности</p>
+        <p class="font-italic">Данная страница показывает количество сыгранных партий в игры из коллекции пользователя по месяцам</p>
         <div class="input-group mb-3">
             <input
                 v-model="userName"
                 ref="username"
                 type="text"
                 class="form-control"
-                placeholder="Username пользователя"
-                aria-label="Username пользователя"
+                placeholder="Username пользователя с boardgamegeek.com"
+                aria-label="Username пользователя с boardgamegeek.com"
                 aria-describedby="basic-addon2"
             >
             <div class="input-group-append">
@@ -30,10 +30,16 @@
         </div>
 
         <div v-if="userStats.headers.length > 0">
-            <table class="table table-striped table-bordered table-hover table-sm table-responsive">
+            <table
+                class="table table-striped table-bordered table-hover table-sm table-responsive"
+                style="font-size: .8em"
+            >
                 <thead>
                 <tr>
-                    <th scope="col" v-for="header in userStats.headers">{{ header }}</th>
+                    <th scope="col" class="top" v-for="header in userStats.headers">{{ getTopHeader(header) }}</th>
+                </tr>
+                <tr>
+                    <th scope="col" v-for="header in userStats.headers">{{ getMiddleHeader(header) }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -66,6 +72,14 @@ export default {
     },
 
     methods: {
+        getTopHeader(header) {
+            return header === '' ? '' : header[0];
+        },
+
+        getMiddleHeader(header) {
+            return header === '' ? '' : header[1];
+        },
+
         getPlays() {
             if (this.loading) {
                 return;
@@ -96,3 +110,19 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+    th {
+        text-align: center;
+        padding: 4px 2px;
+    }
+
+    th.top {
+        writing-mode: vertical-rl;
+        text-orientation: upright;
+    }
+
+    td {
+        padding: 1px 2px;
+    }
+</style>
