@@ -39,4 +39,12 @@ class Play extends Element
     {
         return strval($this->root['date']);
     }
+
+    /**
+     * @return string
+     */
+    public function getQuantity(): string
+    {
+        return strval($this->root['quantity']);
+    }
 }

@@ -14,17 +14,11 @@ interface BGG
      * @param string $userName
      * @return Collection
      */
-    public function getUserCollections(string $userName): Collection;
+    public function getUserCollection(string $userName): Collection;
 
     /**
      * @param string $userName
      * @return Collection
      */
     public function getUserPlays(string $userName): Collection;
-
-    /**
-     * @param string $userName
-     * @return Collection
-     */
-    public function getUserPlaysStat(string $userName): Collection;
 }

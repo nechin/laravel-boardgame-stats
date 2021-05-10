@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Services\BGG\Contracts\BGG;
+use App\Services\BGG\BggService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 
@@ -15,14 +15,14 @@ class PlaysController extends Controller
 {
     /**
      * @param string $userName
-     * @param BGG $bgg
      * @return JsonResponse
      */
-    public function get(string $userName, BGG $bgg): JsonResponse
+    public function get(string $userName): JsonResponse
     {
         try {
+            $service = new BggService();
             return response()->json([
-                'stats' => $bgg->getUserPlaysStat($userName)
+                'stats' => $service->getUserPlaysStat($userName)
             ]);
         } catch (Exception $exception) {
             return response()->json([

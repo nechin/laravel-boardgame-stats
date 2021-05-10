@@ -1,6 +1,9 @@
 <template>
     <div class="col-md-12">
-        <p class="font-italic">Данная страница показывает количество сыгранных партий в игры из коллекции пользователя по месяцам</p>
+        <p class="font-italic">Данная страница показывает последние {{ countPlays }} сыгранных партий в игры из коллекции пользователя по месяцам</p>
+        <p class="font-weight-bold text-danger font-small">
+            Внимание! Если у пользователя в коллекции более 400 игр, то статистика не будет показана. К сожалению, boardgamegeek.com не может обслуживать такие данные.
+        </p>
         <div class="input-group mb-3">
             <input
                 v-model="userName"
@@ -30,16 +33,15 @@
         </div>
 
         <div v-if="userStats.headers.length > 0">
-            <table
-                class="table table-striped table-bordered table-hover table-sm table-responsive"
-                style="font-size: .8em"
-            >
+            <table class="table table-striped table-bordered table-hover table-sm table-responsive font-small">
                 <thead>
                 <tr>
-                    <th scope="col" class="top" v-for="header in userStats.headers">{{ getTopHeader(header) }}</th>
+                    <th scope="col" v-for="header in userStats.headers">
+                        <span class="vertical">{{ header[0] }}</span>
+                    </th>
                 </tr>
                 <tr>
-                    <th scope="col" v-for="header in userStats.headers">{{ getMiddleHeader(header) }}</th>
+                    <th scope="col" v-for="header in userStats.headers">{{ header[1] }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -71,15 +73,13 @@ export default {
         this.focusInput();
     },
 
+    computed: {
+        countPlays() {
+            return 2000;
+        }
+    },
+
     methods: {
-        getTopHeader(header) {
-            return header === '' ? '' : header[0];
-        },
-
-        getMiddleHeader(header) {
-            return header === '' ? '' : header[1];
-        },
-
         getPlays() {
             if (this.loading) {
                 return;
@@ -114,15 +114,19 @@ export default {
 <style scoped>
     th {
         text-align: center;
-        padding: 4px 2px;
+        padding: 4px 2px 0;
     }
 
-    th.top {
+    span.vertical {
         writing-mode: vertical-rl;
         text-orientation: upright;
     }
 
     td {
         padding: 1px 2px;
+    }
+
+    .font-small {
+        font-size: .8em;
     }
 </style>

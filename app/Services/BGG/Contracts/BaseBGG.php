@@ -20,11 +20,5 @@ abstract class BaseBGG implements BGG
      * @param string $userName
      * @return Collection
      */
-    abstract public function getUserCollections(string $userName): Collection;
-
-    /**
-     * @param string $userName
-     * @return Collection
-     */
-    abstract public function getUserPlaysStat(string $userName): Collection;
+    abstract public function getUserCollection(string $userName): Collection;
 }

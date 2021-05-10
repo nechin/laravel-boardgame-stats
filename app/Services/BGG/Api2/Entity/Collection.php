@@ -27,6 +27,14 @@ class Collection extends Element
     /**
      * @return string
      */
+    public function getNumPlays(): string
+    {
+        return (string)$this->root->numplays;
+    }
+
+    /**
+     * @return string
+     */
     public function getGameId(): string
     {
         return strval($this->root['objectid']);
