@@ -45,11 +45,17 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(items) in userStats.items">
-                    <td v-for="item in items">{{ item }}</td>
+                <tr v-for="(items, itemsIndex) in userStats.items">
+                    <td v-for="(item, rowIndex) in items">
+                        <span :class="getLastPlayClass(itemsIndex, rowIndex)">{{ item }}</span>
+                    </td>
                 </tr>
                 </tbody>
             </table>
+            <div>
+                <span class="more-half-year font-small">* Не игралась больше полугода</span><br>
+                <span class="more-year font-small">* Не игралась больше года</span>
+            </div>
         </div>
     </div>
 </template>
@@ -65,6 +71,7 @@ export default {
             userStats: {
                 headers: [],
                 items: [],
+                props: [],
             }
         };
     },
@@ -80,6 +87,20 @@ export default {
     },
 
     methods: {
+        getLastPlayClass(itemsIndex, rowIndex) {
+            if (rowIndex > 0 || typeof this.userStats.props[itemsIndex] === 'undefined') {
+                return "";
+            }
+
+            if (this.userStats.props[itemsIndex].year === true) {
+                return "more-year";
+            } else if (this.userStats.props[itemsIndex].half) {
+                return "more-half-year";
+            }
+
+            return "";
+        },
+
         getPlays() {
             if (this.loading) {
                 return;
@@ -128,5 +149,12 @@ export default {
 
     .font-small {
         font-size: .8em;
+    }
+
+    span.more-year {
+        color: red;
+    }
+    span.more-half-year {
+        color: #b45400;
     }
 </style>

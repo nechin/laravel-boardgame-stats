@@ -34,10 +34,10 @@ return [
 
     'bgg' => [
         'provider' => BggApi2::class,
-        'path' => 'https://www.boardgamegeek.com/xmlapi2/',
-        'plays_count' => 2000,
-        'use_cache' => true,
-        'cache_seconds' => 3600,
+        'api_path' => 'https://www.boardgamegeek.com/xmlapi2/',
+        'plays_count' => env('BGG_PLAYS_COUNT', 2000),
+        'cache_enabled' => env('BGG_CACHE_ENABLED', true),
+        'cache_seconds' => env('BGG_CACHE_SECONDS', 3600),
     ],
 
 ];

@@ -27,7 +27,7 @@ class BggApi2 extends BaseBGG
     public function getUserPlays(string $userName): Collection
     {
         $cacheKey = 'bgg:plays:' . $userName;
-        if (config('services.bgg.use_cache') && Cache::has($cacheKey)) {
+        if (config('services.bgg.cache_enabled') && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
@@ -46,6 +46,10 @@ class BggApi2 extends BaseBGG
                 $element->setParameters($parameters);
                 $elements = $element->getResult();
 
+                if ($elements->attributes()->total == 0) {
+                    break;
+                }
+
                 foreach ($elements as $item) {
                     /** @var SimpleXMLElement $item */
                     $play = new Play($item);
@@ -58,7 +62,7 @@ class BggApi2 extends BaseBGG
                 }
 
                 $page++;
-            } while ($elements && $page < $totalPages);
+            } while ($page <= $totalPages);
 
             if ($plays->count()) {
                 Cache::put($cacheKey, $plays, config('services.bgg.cache_seconds'));
@@ -78,7 +82,7 @@ class BggApi2 extends BaseBGG
     public function getUserCollection(string $userName): Collection
     {
         $cacheKey = 'bgg:collection:' . $userName;
-        if (config('services.bgg.use_cache') && Cache::has($cacheKey)) {
+        if (config('services.bgg.cache_enabled') && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 

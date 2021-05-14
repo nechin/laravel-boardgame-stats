@@ -31,7 +31,7 @@ abstract class Item
      */
     public function getApiUri(): string
     {
-        return config('services.bgg.path') . $this->getUri();
+        return config('services.bgg.api_path') . $this->getUri();
     }
 
     /**
